@@ -1,6 +1,7 @@
 import React from 'react';
 import { StyleSheet, Text, View, ImageBackground, Image, TouchableOpacity } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
+import Header from './Header'; 
 
 const LandingPage = () => {
   const buttonsData = [
@@ -12,6 +13,7 @@ const LandingPage = () => {
   return (
     <ImageBackground source={require('../assets/background.png')} style={styles.background}>
       <View style={styles.container}>
+      <Header /> 
         <Image source={require('../assets/transparent 2.png')} style={styles.logo} />
         <Text style={styles.header}>Welcome!</Text>
         <Text style={styles.text}>Let us help you keep track!</Text>
