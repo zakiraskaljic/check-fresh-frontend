@@ -2,12 +2,16 @@ import React from 'react';
 import { StyleSheet, Text, View, ImageBackground, Image, TouchableOpacity } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
 import Header from './Header'; 
+import SignUp from './SignUp';
+import { useNavigation } from '@react-navigation/native';
 
 const LandingPage = () => {
+
+  const navigation = useNavigation();
+
   const buttonsData = [
-    { text: 'My Profile Page', icon: 'user-circle', isFirstButton: true },
-    { text: '+ Add New Item', icon: '', isFirstButton: false },
-    { text: 'Find New Recipe', icon: '', isFirstButton: false },
+    { text: 'Login', icon: 'user-circle', isFirstButton: true, navigateTo:"Login" },
+
   ];
 
   return (
@@ -19,11 +23,12 @@ const LandingPage = () => {
         <Text style={styles.text}>Let us help you keep track!</Text>
         <View style={styles.buttonContainer}>
           {buttonsData.map((button, index) => (
-            <TouchableOpacity
-              key={index}
-              style={[styles.button, button.isFirstButton && styles.firstButton]}
-              activeOpacity={0.7}
-            >
+             <TouchableOpacity
+             key={index}
+             style={[styles.button, button.isFirstButton && styles.firstButton]}
+             activeOpacity={0.7}
+             onPress={() => navigation.navigate(button.navigateTo)} 
+           >
               {button.icon ? (
                 <FontAwesome name={button.icon} size={24} color={button.isFirstButton ? '#9cac54' : 'white'} style={styles.icon} />
               ) : null}
@@ -32,8 +37,10 @@ const LandingPage = () => {
           ))}
         </View>
         <Text style={styles.signUpText}>
-          Don't have a profile? 
-          <Text style={styles.signUpLink}> Sign Up Today!</Text>
+          <Text>Don't have a profile? </Text>
+          <TouchableOpacity onPress={()=>navigation.navigate("SignUp")}>
+            <Text style={styles.signUpLink}>Sign Up Today!</Text>
+          </TouchableOpacity>
         </Text>
       </View>
     </ImageBackground>
@@ -52,6 +59,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   logo: {
+    marginTop: 40,
+    marginBottom: 40,
     width: 300,
     height: 300,
   },
@@ -104,6 +113,7 @@ const styles = StyleSheet.create({
   signUpLink: {
     fontSize: 16,
     textDecorationLine: 'underline',
+    color: 'white',
   },
 });
 
