@@ -41,7 +41,7 @@ const GroceryList = ({ userId }) => {
   };
 
   return (
-    <SafeAreaView style={{ backgroundColor: 'white', borderRadius: 25, height: 330, width: 350}}>
+    <SafeAreaView style={{ backgroundColor: 'white', borderRadius: 25, height: 330, width: 350, marginBottom:30}}>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', padding: 30 }}>
         <View style={styles.headerContainer}>
           <Text style={{ fontSize: 22, fontWeight: 'bold', color: '#9cac54', marginBottom: 8 }}>My Current Groceries</Text>

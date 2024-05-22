@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, Text, SafeAreaView, TouchableOpacity, FlatList, Image, ActivityIndicator } from 'react-native';
+import { View, Text, Image, FlatList, StyleSheet, TouchableOpacity } from 'react-native';
+import axios from 'axios';
 import { useNavigation } from '@react-navigation/native';
 
 const RecipeList = () => {
-  const [loading, setLoading] = useState(true);
   const [recipes, setRecipes] = useState([]);
   const navigation = useNavigation();
 
@@ -13,103 +13,84 @@ const RecipeList = () => {
 
   const fetchRecipes = async () => {
     try {
-      const response = await fetch('https://rich-blue-shrimp-wig.cyclic.app/recipe');
-      const data = await response.json();
-      setRecipes(data.data.reverse()); 
-      setLoading(false);
+      const response = await axios.get('https://api.spoonacular.com/recipes/complexSearch', {
+        params: {
+          apiKey: 'c18fa0d2df9e4b1fb46a35114867bcee',
+          query: 'a',
+          maxFat: 25,
+          number: 15
+        }
+      });
+      setRecipes(response.data.results);
     } catch (error) {
-      console.error('Error fetching recipes:', error);
-      setLoading(false);
+      console.error(error);
     }
   };
 
-  const navigateToShowRecipe = (recipe) => {
-    navigation.navigate('ShowRecipe', { recipe });
-  };
-
-  const renderRecipeItem = ({ item }) => (
-    <TouchableOpacity onPress={() => navigateToShowRecipe(item)} style={styles.recipeContainer}>
-      <Image source={{ uri: item.recipe_picture }} style={styles.recipeImage} />
-      <View style={styles.recipeDetails}>
+  const renderItem = ({ item }) => (
+    <TouchableOpacity onPress={() => navigation.navigate('ShowRecipe', { recipeId: item.id })}>
+      <View style={styles.recipeItem}>
+        <Image source={{ uri: item.image }} style={styles.recipeImage} />
         <Text style={styles.recipeTitle}>{item.title}</Text>
-        <Text style={styles.recipeCategory}>{item.category}</Text>
       </View>
     </TouchableOpacity>
   );
 
-  if (loading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#0000ff" />
-      </View>
-    );
-  }
-
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.headerContainer}>
+    <View style={styles.container}>
+       <View style={{ flexDirection: 'row', justifyContent: 'space-between', padding: 30 }}>
+        <View style={styles.headerContainer}>
           <Text style={{ fontSize: 22, fontWeight: 'bold', color: '#9cac54', marginBottom: 8 }}>Recipes</Text>
           <Text style={{ fontSize: 14, fontWeight: 'bold', color: '#9cac54' }}>Check out plenty of delicious recipes.</Text>
         </View>
+      </View>
       <FlatList
         data={recipes}
-        renderItem={renderRecipeItem}
-        keyExtractor={(item, index) => index.toString()}
-        horizontal={true}
-        contentContainerStyle={styles.recipeList}
+        renderItem={renderItem}
+        keyExtractor={item => item.id.toString()}
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.listContent}
       />
-    </SafeAreaView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    height: 350,
-    width: 350,
-    backgroundColor: 'white',
+    backgroundColor: '#fff',
+    padding: 10,
     borderRadius: 25,
-    margin: 25
   },
   headerContainer: {
-    margin: 30,
-    marginBottom: 10,
-    flex: 1
-  },
-  loadingContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
-  recipeList: {
-    paddingHorizontal: 10,
+  listContent: {
+    paddingVertical: 10,
   },
-  recipeContainer: {
-    marginTop: 30,
-    marginRight: 20,
+  recipeItem: {
+    padding: 10,
+    backgroundColor: '#fff',
     borderRadius: 10,
     overflow: 'hidden',
-    backgroundColor: '#9cac54',
-    width: 120,
-    height: 200,
+    elevation: 3,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.8,
+    shadowRadius: 2,
   },
   recipeImage: {
-    width: 130,
-    height: 100,
-  },
-  recipeDetails: {
-    padding: 10,
+    width: 200,
+    height: 140,
+    borderRadius: 10,
+    marginBottom: 5,
   },
   recipeTitle: {
-    fontSize: 16,
+    fontSize: 12,
     fontWeight: 'bold',
-    color: 'white',
-  },
-  recipeCategory: {
-    fontSize: 14,
-    color: 'white',
+    textAlign: 'center',
+    color: '#9cac54',
   },
 });
 
 export default RecipeList;
-

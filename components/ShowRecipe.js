@@ -1,77 +1,121 @@
-import React from 'react';
-import { StyleSheet, View, Text, SafeAreaView, Image, ScrollView, ImageBackground } from 'react-native';
-import PropTypes from 'prop-types';
+import React, { useEffect, useState } from 'react';
+import { View, Text, Image, ScrollView, StyleSheet, ImageBackground } from 'react-native';
+import axios from 'axios';
 import Header from './Header';
 
 const ShowRecipe = ({ route }) => {
-  const { recipe } = route.params;
+  const { recipeId } = route.params;
+  const [recipe, setRecipe] = useState(null);
 
-  return (  
+  useEffect(() => {
+    fetchRecipeDetails();
+  }, []);
+
+  const fetchRecipeDetails = async () => {
+    try {
+      const response = await axios.get(`https://api.spoonacular.com/recipes/${recipeId}/information`, {
+        params: {
+          apiKey: 'c18fa0d2df9e4b1fb46a35114867bcee',
+          includeNutrition: false
+        }
+      });
+      setRecipe(response.data);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  if (!recipe) {
+    return (
+      <View style={styles.loadingContainer}>
+        <Text>Loading...</Text>
+      </View>
+    );
+  }
+
+  return (
     <ImageBackground source={require('../assets/background.png')} style={styles.background}>
-      <SafeAreaView style={styles.container}>
-      <Header/>
-          <View style={styles.recipeContainer}>
-            <Image source={{ uri: recipe.recipe_picture }} style={styles.recipeImage} />
-            <View style={styles.recipeDetails}>
-              <Text style={styles.recipeTitle}>{recipe.title}</Text>
-              <Text style={styles.recipeCategory}>{recipe.category}</Text>
-              <Text style={styles.recipeIngredientsTitle}>Ingredients:</Text>
-              <Text style={styles.recipeIngredients}>{recipe.ingredients}</Text>
-            </View>
-          </View>
-        </SafeAreaView>
+      <Header/> 
+      <View style={styles.centerContainer}>
+        <ScrollView contentContainerStyle={styles.scrollViewContent}>
+          <Image source={{ uri: recipe.image }} style={styles.image} />
+          <Text style={styles.title}>{recipe.title}</Text>
+          <Text style={styles.summary}>{recipe.summary.replace(/<[^>]+>/g, '')}</Text>
+          <Text style={styles.sectionTitle}>Ingredients</Text>
+          {recipe.extendedIngredients.map(ingredient => (
+            <Text key={ingredient.id} style={styles.ingredient}>
+              {ingredient.original}
+            </Text>
+          ))}
+          <Text style={styles.sectionTitle}>Instructions</Text>
+          {recipe.analyzedInstructions[0]?.steps.map(step => (
+            <Text key={step.number} style={styles.instruction}>
+              {step.number}. {step.step}
+            </Text>
+          ))}
+        </ScrollView>
+      </View>
     </ImageBackground>
   );
-};
-
-ShowRecipe.propTypes = {
-  route: PropTypes.object.isRequired,
 };
 
 const styles = StyleSheet.create({
   background: {
     width: '100%',
     height: '100%',
-},
-container: {
-  flex: 1,
-  margin: 30,
-  marginTop: 100
-},
-  recipeImage: {
-    height: 250,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  centerContainer: {
+    flex: 1,
+    width: '90%', 
+    backgroundColor: 'rgba(255, 255, 255, 0.9)', 
+    borderRadius: 10,
+    overflow: 'hidden',
+    padding: 10,
+    margin: 50
+  },
+  scrollViewContent: {
+    alignItems: 'center',
+    paddingVertical: 20,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  image: {
     width: '100%',
-    borderTopRightRadius: 30,
-    borderTopLeftRadius: 30
+    height: 200,
+    borderRadius: 10,
   },
-  recipeDetails: {
-    padding: 20,
-  },
-  recipeTitle: {
+  title: {
     fontSize: 24,
     fontWeight: 'bold',
-    marginBottom: 5,
+    marginVertical: 10,
+    textAlign: 'center',
   },
-  recipeCategory: {
-    fontSize: 18,
-    color: '#9cac54',
+  summary: {
+    marginLeft: 10,
+    marginRight: 10,
+    fontSize: 16,
     marginBottom: 10,
+    textAlign: 'justify',
   },
-  recipeContainer: {
-    backgroundColor: 'white',
-    margin: 30,
-    borderRadius: 30,
-    width: '100%',
-    marginLeft: -5
-  },
-  recipeIngredientsTitle: {
+  sectionTitle: {
     fontSize: 20,
     fontWeight: 'bold',
+    marginTop: 20,
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  ingredient: {
+    fontSize: 16,
     marginBottom: 5,
   },
-  recipeIngredients: {
+  instruction: {
     fontSize: 16,
-    lineHeight: 24,
+    marginBottom: 5,
   },
 });
 
