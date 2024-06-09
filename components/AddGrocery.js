@@ -1,14 +1,52 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, Alert, StyleSheet, TouchableOpacity, Image, ImageBackground } from 'react-native';
+import React, { useState, useRef, useEffect } from 'react';
+import { View, Text, TextInput, Alert, StyleSheet, TouchableOpacity, Image, ImageBackground, Platform } from 'react-native';
 import { collection, addDoc, getFirestore } from 'firebase/firestore';
 import { getFirebaseApp } from "../utils/firebaseHelper";
 import moment from 'moment'; 
 import Header from './Header'; 
+import * as Device from 'expo-device';
+import * as Notifications from 'expo-notifications';
+import Constants from 'expo-constants';
+
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: false,
+    shouldSetBadge: false,
+  }),
+});
 
 const AddGrocery = ({ route, navigation }) => { 
   const { userId } = route.params;
   const [groceryName, setGroceryName] = useState('');
   const [expirationDate, setExpirationDate] = useState('');
+  const [expoPushToken, setExpoPushToken] = useState('');
+  const [channels, setChannels] = useState([]);
+  const [notification, setNotification] = useState(undefined);
+  const notificationListener = useRef();
+  const responseListener = useRef();
+
+  useEffect(() => {
+    registerForPushNotificationsAsync().then(token => token && setExpoPushToken(token));
+
+    if (Platform.OS === 'android') {
+      Notifications.getNotificationChannelsAsync().then(value => setChannels(value ?? []));
+    }
+    notificationListener.current = Notifications.addNotificationReceivedListener(notification => {
+      setNotification(notification);
+    });
+
+    responseListener.current = Notifications.addNotificationResponseReceivedListener(response => {
+      console.log(response);
+    });
+
+    return () => {
+      notificationListener.current &&
+        Notifications.removeNotificationSubscription(notificationListener.current);
+      responseListener.current &&
+        Notifications.removeNotificationSubscription(responseListener.current);
+    };
+  }, []);
 
   const handleAddGrocery = async () => {
     try {
@@ -39,11 +77,17 @@ const AddGrocery = ({ route, navigation }) => {
       setExpirationDate('');
       
       navigation.navigate('Homepage');
+
+      await schedulePushNotification(groceryName, parsedDate);
     } catch (error) {
       console.error('Error adding grocery: ', error);
       Alert.alert('Error', 'Failed to add grocery item.');
     }
   };
+
+  async function handleAddGroceryAndNotify() {
+    await handleAddGrocery(); 
+  }
 
   return (
     <ImageBackground source={require('../assets/background.png')} style={styles.background}>
@@ -65,13 +109,84 @@ const AddGrocery = ({ route, navigation }) => {
         value={expirationDate}
         onChangeText={text => setExpirationDate(text)}
       />
-      <TouchableOpacity style={styles.button} title="Add Grocery" onPress={handleAddGrocery} >
+      <TouchableOpacity style={styles.button} title="Add Grocery"  onPress={handleAddGroceryAndNotify} >
         <Text style={styles.buttonText}> Add Grocery</Text>
       </TouchableOpacity>
     </View>
     </ImageBackground>
   );
 };
+
+async function schedulePushNotification(groceryName, expirationDate) {
+  const currentMoment = moment();
+  const expirationMoment = moment(expirationDate);
+
+  let trigger;
+  let notificationBody;
+
+  if (expirationMoment.diff(currentMoment, 'days') <= 7) {
+    console.log('Expiration date is within 7 days, scheduling notification for 2 seconds from now.');
+    trigger = { seconds: 2 };
+    notificationBody = `Your ${groceryName} is about to expire in ${expirationMoment.diff(currentMoment, 'days')} days!`;
+  } else {
+    const triggerMoment = expirationMoment.subtract(7, 'days');
+    trigger = { date: triggerMoment.toDate() };
+    notificationBody = `Your ${groceryName} is about to expire in 7 days!`;
+  }
+
+  await Notifications.scheduleNotificationAsync({
+    content: {
+      title: "Expiration Date Reminder",
+      body: notificationBody,     
+    },
+    trigger,
+  });
+}
+
+async function registerForPushNotificationsAsync() {
+  let token;
+
+  if (Platform.OS === 'android') {
+    await Notifications.setNotificationChannelAsync('default', {
+      name: 'default',
+      importance: Notifications.AndroidImportance.MAX,
+      vibrationPattern: [0, 250, 250, 250],
+      lightColor: '#FF231F7C',
+    });
+  }
+
+  if (Device.isDevice) {
+    const { status: existingStatus } = await Notifications.getPermissionsAsync();
+    let finalStatus = existingStatus;
+    if (existingStatus !== 'granted') {
+      const { status } = await Notifications.requestPermissionsAsync();
+      finalStatus = status;
+    }
+    if (finalStatus !== 'granted') {
+      alert('Failed to get push token for push notification!');
+      return;
+    }
+    try {
+      const projectId =
+        Constants?.expoConfig?.extra?.eas?.projectId ?? Constants?.easConfig?.projectId;
+      if (!projectId) {
+        throw new Error('Project ID not found');
+      }
+      token = (
+        await Notifications.getExpoPushTokenAsync({
+          projectId,
+        })
+      ).data;
+      console.log(token);
+    } catch (e) {
+      token = `${e}`;
+    }
+  } else {
+    alert('Must use physical device for Push Notifications');
+  }
+
+  return token;
+}
 
 const styles = StyleSheet.create({
     background: {
@@ -117,4 +232,4 @@ const styles = StyleSheet.create({
     },
 });
 
-export default AddGrocery; 
+export default AddGrocery;

@@ -44,7 +44,7 @@ const Homepage = () => {
     return (
         <ImageBackground source={require('../assets/background.png')} style={styles.background}>
         <ScrollView>
-            <Header/> 
+            <Header userId={userId}/> 
             <View style={styles.centeredContainer}>
                 <View style={styles.content}>
                     <View style={styles.headerContainer}>
