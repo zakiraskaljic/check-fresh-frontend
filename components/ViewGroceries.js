@@ -72,7 +72,7 @@ const ViewGroceries = ({ route }) => {
 const styles = StyleSheet.create({
   container: {
     padding: 20,
-    marginTop: 60,
+    marginTop: 100,
   },
   background: {
     width: '100%',
@@ -118,7 +118,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#c04000',
   },
   expiredContainer: {
-    backgroundColor: '#808080',
+    backgroundColor: '#A9A9A9',
   },
   itemText: {
     color: 'white',
