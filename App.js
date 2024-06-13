@@ -2,6 +2,7 @@ import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { SignUp, LandingPage, Login, Homepage, GroceryList, AddGrocery } from './components';
+import ViewGroceries from './components/ViewGroceries';
 import { Provider } from 'react-redux';
 import { store } from './store/store';
 import ShowRecipe from './components/ShowRecipe';
@@ -51,6 +52,10 @@ const App = () => {
             name="ShowRecipe" 
             component={ShowRecipe} 
         />
+         <Stack.Screen
+            name="ViewGroceries"
+            component={ViewGroceries}
+         />
       </Stack.Navigator>
     </NavigationContainer>
   </Provider>

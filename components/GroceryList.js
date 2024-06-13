@@ -66,6 +66,9 @@ const GroceryList = ({ userId }) => {
         horizontal={true}
       />
       <View style={styles.buttonContainer}>
+      <TouchableOpacity style={styles.button1} onPress={() => navigation.navigate('ViewGroceries', { groceries })}>
+                <Text style={{ fontSize: 14, fontWeight: 'bold', color: '#9cac54', textAlign: 'center' }}> View Them All</Text>
+              </TouchableOpacity>
         <TouchableOpacity style={styles.button1} onPress={() => navigation.navigate('AddGrocery', { userId: userId })}>
           <Text style={{ fontSize: 14, fontWeight: 'bold', color: '#9cac54', textAlign: 'center' }}> + Add New Ones</Text>
         </TouchableOpacity>
@@ -100,9 +103,11 @@ const styles = StyleSheet.create({
     width: 140,
   },
   buttonContainer: {
-    position: 'absolute',
-    bottom: 15,
-    right: 30,
+   flexDirection: 'row',
+   padding: 10,
+   marginLeft:20,
+   marginRight:20,
+   justifyContent: 'space-between',
   },
 });
 export default GroceryList; 
