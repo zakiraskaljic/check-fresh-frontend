@@ -82,7 +82,7 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     padding: 20,
     marginBottom: 30,
-    height: '40%'
+    height: '45%',
   },
   headerContainer: {
     padding: 30,
